@@ -1,33 +1,43 @@
-const bcrypt = require("bcryptjs")
-const Users = require("../users/users-model")
+const bcrypt = require("bcryptjs");
+const Users = require("../users/users-model");
+
+// from our manual session implementation
+// **********************************************
+// const sessions = {}
 
 function restrict() {
-	const authError = {
-		message: "Invalid credentials",
-	}
-	
-	return async (req, res, next) => {
-		try {
-			const { username, password } = req.headers
-			if (!username || !password) {
-				return res.status(401).json(authError)
-			}
+ const authError = {
+  message: "Invalid credentials"
+ };
 
-			const user = await Users.findBy({ username }).first()
-			if (!user) {
-				return res.status(401).json(authError)
-			}
+ return async (req, res, next) => {
+  try {
+   //      our manual session implementation
+   //      **********************************************
+   // 			const { cookie } = req.headers
+   // 			if (!cookie) {
+   // 				return res.status(401).json(authError)
+   // 			}
+   //
+   // 			const authToken = cookie.replace("token=", "")
+   // 			if (!sessions[authToken]) {
+   // 				return res.status(401).json(authError)
+   // 			}
 
-			const passwordValid = await bcrypt.compare(password, user.password)
-			if (!passwordValid) {
-				return res.status(401).json(authError)
-			}
+   // we set `req.session.user` when the user is authenticated in `/login`.
+   // so we know if it's not set, the user isn't authenticated yet.
+   if (!req.session || !req.session.user) {
+    return res.status(401).json(authError);
+   }
 
-			next()
-		} catch(err) {
-			next(err)
-		}
-	}
+   next();
+  } catch (err) {
+   next(err);
+  }
+ };
 }
 
-module.exports = restrict
+module.exports = {
+ // sessions,
+ restrict
+};
